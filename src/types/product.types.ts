@@ -1,3 +1,8 @@
+export interface Specification {
+  label: string;
+  value: string;
+}
+
 export interface Product {
   id: number;
   title: string;
@@ -12,6 +17,7 @@ export interface Product {
   category: string | null;
   tags: string[];
   weight: number | null;
+  details: Specification[] | null;   // ← renommé specifications → details
   createdAt: string;
   updatedAt: string;
 }

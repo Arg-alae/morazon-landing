@@ -1,19 +1,13 @@
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import Details from './components/Details';
-import Testimonials from './components/Testimonials';
-import Order from './components/Order';
-import Footer from './components/Footer';
+import { Routes, Route } from 'react-router-dom';
+import ProductPage from './pages/ProductPage';
+import NotFound from './components/NotFound';
 
 export default function App() {
   return (
-    <div>
-      <Navbar />
-      <Hero />
-      <Details />
-      <Testimonials />
-      <Order />
-      <Footer />
-    </div>
+    <Routes>
+      <Route path="/" element={<ProductPage />} />
+      <Route path="/:slug" element={<ProductPage />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }

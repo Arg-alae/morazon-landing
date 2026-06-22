@@ -1,20 +1,51 @@
 import { useState } from 'react';
+import type { Product } from '../types/product.types';
+import { createOrder } from '../services/api';
 
-export default function Order() {
+interface OrderProps {
+  product: Product;
+}
+
+export default function Order({ product }: OrderProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     quantity: '1',
-    color: 'Bordeaux',
     message: '',
   });
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const price = product.price ?? 0;
+  const total = price * parseInt(formData.quantity);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
+    setSubmitting(true);
+    setError('');
+
+    try {
+      await createOrder({
+        productId: product.id,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        quantity: parseInt(formData.quantity),
+        message: formData.message || undefined,
+      });
+      setSent(true);
+    } catch (err) {
+      console.error('Order creation failed', err);
+      setError('Something went wrong. Please try again or contact us directly.');
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const productImage = product.images?.[0] || product.imageUrl
+    || 'https://images.unsplash.com/photo-1600166898405-da9535204843?w=800';
 
   return (
     <section id="order" className="py-20 bg-white">
@@ -25,31 +56,28 @@ export default function Order() {
           {/* GAUCHE — PRODUIT */}
           <div className="bg-[#FAF9F7] p-8">
             <img
-              src="https://images.unsplash.com/photo-1600166898405-da9535204843?w=800"
-              alt="Atlas Berber Rug"
+              src={productImage}
+              alt={product.title}
               className="w-full h-52 object-cover mb-6"
             />
 
             <div className="inline-flex items-center gap-2 mb-3">
               <div className="w-6 h-px bg-[#8B2635]" />
               <span className="text-[10px] tracking-widest uppercase text-[#8B2635]" style={{ fontFamily: 'Georgia, serif' }}>
-                Secure Your Rug
+                Secure Your Order
               </span>
             </div>
 
             <h2 className="text-2xl font-normal text-gray-900 mb-1" style={{ fontFamily: 'Georgia, serif' }}>
-              The Atlas Berber Rug
+              {product.title}
             </h2>
             <p className="text-xs text-gray-400 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-              200 x 300 cm · 100% Natural Wool · Hand-knotted
+              {product.category} {product.weight ? `· ${product.weight} kg` : ''}
             </p>
 
             <div className="flex items-baseline gap-4 mb-6 pb-6 border-b border-gray-200">
               <span className="text-3xl font-normal text-gray-900 tabular-nums" style={{ fontFamily: 'Georgia, serif' }}>
-                $285
-              </span>
-              <span className="text-lg text-gray-300 line-through tabular-nums" style={{ fontFamily: 'Georgia, serif' }}>
-                $350
+                ${price}
               </span>
             </div>
 
@@ -58,7 +86,7 @@ export default function Order() {
                 'Free worldwide shipping',
                 'Certificate of authenticity included',
                 'Confirmed within 24 hours',
-                'Only 3 left in stock',
+                product.stock > 0 ? `${product.stock} in stock` : 'Out of stock',
               ].map(item => (
                 <div key={item} className="flex items-center gap-2">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B2635" strokeWidth="2.5">
@@ -124,46 +152,20 @@ export default function Order() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] tracking-widest uppercase text-[#8B2635] mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-                      Color — <span className="text-gray-700 normal-case">{formData.color}</span>
-                    </label>
-                    <div className="flex gap-2 pb-2">
-                      {[
-                        { color: '#8B2635', name: 'Bordeaux' },
-                        { color: '#C4A882', name: 'Camel' },
-                        { color: '#2C3E50', name: 'Navy' },
-                        { color: '#1a0a0d', name: 'Ebony' },
-                        { color: '#F5F5DC', name: 'Ivory' },
-                      ].map(item => (
-                        <div
-                          key={item.name}
-                          onClick={() => setFormData({ ...formData, color: item.name })}
-                          title={item.name}
-                          className={`w-7 h-7 rounded-full cursor-pointer hover:scale-110 transition-transform border-2 border-white shadow-md ${
-                            formData.color === item.name ? 'ring-2 ring-offset-1 ring-[#8B2635]' : ''
-                          }`}
-                          style={{ backgroundColor: item.color }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] tracking-widest uppercase text-[#8B2635] mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-                      Quantity
-                    </label>
-                    <select
-                      value={formData.quantity}
-                      onChange={e => setFormData({ ...formData, quantity: e.target.value })}
-                      className="w-full border-0 border-b border-gray-200 bg-transparent py-2 text-sm text-gray-900 outline-none focus:border-[#8B2635] transition-colors cursor-pointer"
-                      style={{ fontFamily: 'Georgia, serif' }}
-                    >
-                      {['1', '2', '3'].map(q => (
-                        <option key={q} value={q}>{q}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-[10px] tracking-widest uppercase text-[#8B2635] mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+                    Quantity
+                  </label>
+                  <select
+                    value={formData.quantity}
+                    onChange={e => setFormData({ ...formData, quantity: e.target.value })}
+                    className="w-full border-0 border-b border-gray-200 bg-transparent py-2 text-sm text-gray-900 outline-none focus:border-[#8B2635] transition-colors cursor-pointer"
+                    style={{ fontFamily: 'Georgia, serif' }}
+                  >
+                    {['1', '2', '3'].map(q => (
+                      <option key={q} value={q}>{q}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -183,16 +185,21 @@ export default function Order() {
                 <div className="flex items-center justify-between py-3 border-t border-gray-100">
                   <span className="text-xs tracking-widest uppercase text-gray-400" style={{ fontFamily: 'Georgia, serif' }}>Total</span>
                   <span className="text-2xl font-normal text-gray-900 tabular-nums" style={{ fontFamily: 'Georgia, serif' }}>
-                    ${(285 * parseInt(formData.quantity)).toFixed(2)}
+                    ${total.toFixed(2)}
                   </span>
                 </div>
 
+                {error && (
+                  <p className="text-sm text-red-500 text-center">{error}</p>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full bg-[#8B2635] text-white text-xs tracking-widest uppercase py-4 hover:bg-[#7a1f2d] transition-colors cursor-pointer"
+                  disabled={submitting}
+                  className="w-full bg-[#8B2635] text-white text-xs tracking-widest uppercase py-4 hover:bg-[#7a1f2d] transition-colors cursor-pointer disabled:opacity-50"
                   style={{ fontFamily: 'Georgia, serif' }}
                 >
-                  Place My Order — ${(285 * parseInt(formData.quantity)).toFixed(2)}
+                  {submitting ? 'Placing order...' : `Place My Order — $${total.toFixed(2)}`}
                 </button>
 
                 <p className="text-center text-[11px] text-gray-400" style={{ fontFamily: 'Georgia, serif' }}>

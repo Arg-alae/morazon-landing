@@ -1,14 +1,19 @@
 import { useState } from 'react';
+import type { Product } from '../types/product.types';
 
-export default function Hero() {
+interface HeroProps {
+  product: Product;
+}
+
+export default function Hero({ product }: HeroProps) {
   const [mainImage, setMainImage] = useState(0);
 
-  const images = [
-    'https://images.unsplash.com/photo-1600166898405-da9535204843?w=900',
-    'https://images.unsplash.com/photo-1596443686812-2f45229eebc3?w=900',
-    'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=900',
-    'https://images.unsplash.com/photo-1575414003709-3a15ebb5ee28?w=900',
-  ];
+  // Fallback si le produit n'a pas d'images
+  const images = product.images?.length > 0
+    ? product.images
+    : product.imageUrl
+      ? [product.imageUrl]
+      : ['https://images.unsplash.com/photo-1600166898405-da9535204843?w=900'];
 
   return (
     <section id="home" className="pt-20 bg-[#FAF9F7]">
@@ -20,27 +25,29 @@ export default function Hero() {
             <div className="overflow-hidden mb-3 bg-gray-100">
               <img
                 src={images[mainImage]}
-                alt="Atlas Berber Rug"
+                alt={product.title}
                 className="w-full h-[480px] object-cover transition-all duration-500"
               />
             </div>
-            <div className="grid grid-cols-4 gap-2">
-              {images.map((src, i) => (
-                <div
-                  key={i}
-                  onClick={() => setMainImage(i)}
-                  className={`overflow-hidden cursor-pointer border-2 transition-colors ${
-                    mainImage === i ? 'border-[#8B2635]' : 'border-transparent hover:border-gray-300'
-                  }`}
-                >
-                  <img
-                    src={src}
-                    alt={`View ${i + 1}`}
-                    className="w-full h-20 object-cover hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-              ))}
-            </div>
+            {images.length > 1 && (
+              <div className="grid grid-cols-4 gap-2">
+                {images.map((src, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setMainImage(i)}
+                    className={`overflow-hidden cursor-pointer border-2 transition-colors ${
+                      mainImage === i ? 'border-[#8B2635]' : 'border-transparent hover:border-gray-300'
+                    }`}
+                  >
+                    <img
+                      src={src}
+                      alt={`View ${i + 1}`}
+                      className="w-full h-20 object-cover hover:scale-110 transition-transform duration-500"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* DROITE — INFO */}
@@ -49,16 +56,15 @@ export default function Hero() {
             <div className="inline-flex items-center gap-2 mb-3">
               <div className="w-6 h-px bg-[#8B2635]" />
               <span className="text-[10px] tracking-widest uppercase text-[#8B2635]" style={{ fontFamily: 'Georgia, serif' }}>
-                Handwoven · Atlas Mountains · Morocco
+                {product.category || 'Handcrafted · Morocco'}
               </span>
             </div>
 
             <h1 className="text-4xl font-normal mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-              <span className="text-gray-900">The Atlas </span>
-              <span className="text-[#8B2635] italic block">Berber Rug.</span>
+              <span className="text-gray-900">{product.title}</span>
             </h1>
 
-            {/* ETOILES */}
+            {/* ETOILES — statique pour l'instant (pas de système de reviews) */}
             <div className="flex items-center gap-2 mb-4">
               <div className="flex gap-1">
                 {[1,2,3,4,5].map(i => (
@@ -73,25 +79,23 @@ export default function Hero() {
             </div>
 
             <p className="text-sm text-gray-500 mb-6 leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>
-              100% natural wool, hand-knotted over 3 weeks by master artisans in the High Atlas Mountains of Morocco. Each knot tells a story of tradition and craftsmanship.
+              {product.description}
             </p>
 
             {/* PRIX */}
             <div className="flex items-baseline gap-4 mb-6 pb-6 border-b border-gray-100">
               <span className="text-3xl font-normal text-gray-900 tabular-nums" style={{ fontFamily: 'Georgia, serif' }}>
-                $285
-              </span>
-              <span className="text-lg text-gray-300 line-through tabular-nums" style={{ fontFamily: 'Georgia, serif' }}>
-                 $350
+                ${product.price ?? 0}
               </span>
             </div>
+
             {/* BOUTONS */}
             <button
               onClick={() => document.getElementById('order')?.scrollIntoView({ behavior: 'smooth' })}
               className="w-full bg-[#8B2635] text-white text-xs tracking-widest uppercase py-4 hover:bg-[#7a1f2d] transition-colors cursor-pointer mb-3"
               style={{ fontFamily: 'Georgia, serif' }}
             >
-              Order Now — $285
+              Order Now — ${product.price ?? 0}
             </button>
 
             <button
@@ -102,12 +106,14 @@ export default function Hero() {
               View Full Details
             </button>
 
-            {/* GARANTIES */}
+            {/* GARANTIES — statique, pas lié aux données produit */}
             <div className="space-y-2 pt-4 border-t border-gray-100">
               {[
                 'Free worldwide shipping — 7 to 14 days',
                 'Certificate of authenticity included',
-                'Only 3 left in stock — order today',
+                product.stock <= 5 && product.stock > 0
+                  ? `Only ${product.stock} left in stock — order today`
+                  : 'In stock — order today',
               ].map(item => (
                 <div key={item} className="flex items-center gap-2">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B2635" strokeWidth="2.5">

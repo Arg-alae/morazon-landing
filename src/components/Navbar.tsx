@@ -1,6 +1,11 @@
 import { useState } from 'react';
+import type { Product } from '../types/product.types';
+import logo from '../assets/logo_morazon.png';
+interface NavbarProps {
+  product: Product;
+}
 
-export default function Navbar() {
+export default function Navbar({ product }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
@@ -14,13 +19,12 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
-        <span
+        <img
+          src={logo}
+          alt="Morazon"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="text-xl font-bold tracking-widest text-[#8B2635] uppercase cursor-pointer"
-          style={{ fontFamily: 'Georgia, serif' }}
-        >
-          Morazon
-        </span>
+          className="h-7 cursor-pointer"
+        />
 
         <div className="hidden md:flex items-center gap-10">
           {navItems.map(item => (
@@ -40,7 +44,7 @@ export default function Navbar() {
           className="hidden md:block bg-[#8B2635] text-white text-xs tracking-widest uppercase px-6 py-3 hover:bg-[#7a1f2d] transition-colors cursor-pointer"
           style={{ fontFamily: 'Georgia, serif' }}
         >
-          Order Now — $285
+          Order Now — ${product.price ?? 0}
         </button>
 
         <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-gray-500">
@@ -73,7 +77,7 @@ export default function Navbar() {
             className="mt-4 w-full bg-[#8B2635] text-white text-xs tracking-widest uppercase py-3 cursor-pointer"
             style={{ fontFamily: 'Georgia, serif' }}
           >
-            Order Now — $285
+            Order Now — ${product.price ?? 0}
           </button>
         </div>
       )}

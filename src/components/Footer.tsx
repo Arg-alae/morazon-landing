@@ -46,7 +46,6 @@ export default function Footer() {
               <li className="text-xs text-white/30" style={{ fontFamily: 'Georgia, serif' }}>+212 600 000 000</li>
               <li className="text-xs text-white/30" style={{ fontFamily: 'Georgia, serif' }}>Tamesna, Morocco</li>
             </ul>
-            
           </div>
         </div>
 
